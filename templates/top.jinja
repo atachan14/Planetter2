@@ -1,0 +1,18 @@
+{% extends 'base.jinja' %}
+
+{% block body %}
+  <div class="top-root">
+    <header>
+        <h1>Planetter2</h1>
+    </header>
+    <main>
+      <div class="login-box">
+        <form method="POST">
+          <input type="text" name="username" placeholder="アカウント名" />
+          <input type="password" name="password" placeholder="パスワード" />
+          <button type="submit">ログイン／新規登録</button>
+        </form>
+      </div>
+    </main>
+  </div>
+{% endblock %}

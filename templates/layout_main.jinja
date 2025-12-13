@@ -1,0 +1,18 @@
+{% extends 'base.jinja' %}
+
+{% block body %}
+  <div class="main-root">
+    <header>
+      {% include 'header.jinja' %}
+    </header>
+
+    <main>
+      {% block content %}
+      {% endblock %}
+    </main>
+
+    <footer>
+      {% include 'footer.jinja' %}
+    </footer>
+  </div>
+{% endblock %}

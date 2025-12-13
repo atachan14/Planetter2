@@ -1,9 +1,10 @@
 from flask import Flask
-app = Flask(__name__)
+from routes.auth import auth_bp
 
-@app.route("/")
-def home():
-    return "白紙だけどサーバは動いてるよ〜"
+app = Flask(__name__)
+app.secret_key = "dev-secret-key"
+
+app.register_blueprint(auth_bp)
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", port=10000, debug=True)
