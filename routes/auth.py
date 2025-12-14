@@ -16,6 +16,9 @@ def index():
     conn = get_db()
     cur = conn.cursor()
     state = get_user_state(cur, session["user_id"])
+    if state is None:
+        session.clear()
+        return redirect("/")
     cur.close()
     conn.close()
 

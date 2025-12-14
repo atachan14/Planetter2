@@ -1,5 +1,4 @@
 import random
-from db import get_db
 
 def land_on_planet(cur, user_id, planet_id):
     cur.execute(

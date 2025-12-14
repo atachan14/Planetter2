@@ -12,7 +12,8 @@ def get_user_state(cur, user_id):
         WHERE u.id = %s
     """, (user_id,))
     row = cur.fetchone()
-
+    if row is None:
+        return None   # ← 重要
     return {
         "user_name": row[0],
         "pos_x": row[1],
