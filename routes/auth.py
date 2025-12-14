@@ -1,33 +1,12 @@
 from flask import Blueprint, render_template, request, redirect, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from services.galaxy import land_on_planet
-from services.user_state import get_user_state
+
 
 from db import get_db
 
 auth_bp = Blueprint("auth", __name__)
 BEGINNERS_PLANET_ID = 1
-
-@auth_bp.route("/", methods=["GET"])
-def index():
-    if "user_id" not in session:
-        return render_template("top.jinja")
-
-    conn = get_db()
-    cur = conn.cursor()
-    state = get_user_state(cur, session["user_id"])
-    if state is None:
-        session.clear()
-        return redirect("/")
-    cur.close()
-    conn.close()
-
-    if session.pop("show_landing", False):
-        return render_template("landing.jinja", state=state)
-
-    return render_template("main.jinja", state=state)
-
-
 
 @auth_bp.route("/login", methods=["POST"])
 def login_submit():
