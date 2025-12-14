@@ -1,4 +1,12 @@
 <div class="head-bar">
-    <div class="page-title"></div>
-    <div class="site-title"><h1>Planetter2</h1></div>
+  <div class="head-section">
+    <h1 class="site-title">Planetter2</h1>
+    <span class="planet-name">{{ state.planet_name }}</span>
+  </div>
+  <div class="head-section">
+    <span class="user-name">{{ state.user_name }}</span>
+    <form method="POST" action="/logout">
+      <button type="submit" class="logout">ログアウト</button>
+    </form>
+  </div>
 </div>

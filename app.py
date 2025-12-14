@@ -1,5 +1,7 @@
 from flask import Flask
 from routes.auth import auth_bp
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = "dev-secret-key"

@@ -1,11 +1,12 @@
 import psycopg2
+import os
 
 def get_db():
     return psycopg2.connect(
-        host="dpg-d4tijl63jp1c73d3bvj0-a.oregon-postgres.render.com",
-        port=5432,
-        user="planetter2_db_user",
-        password="3VfanMp4yvHo7xMJdKklRayJOmLvV6ME",
-        dbname="planetter2_db",
-        sslmode="require"
+        host=os.environ["DB_HOST"],
+        port=os.environ.get("DB_PORT", 5432),
+        user=os.environ["DB_USER"],
+        password=os.environ["DB_PASSWORD"],
+        dbname=os.environ["DB_NAME"],
+        sslmode=os.environ.get("DB_SSLMODE", "require"),
     )
