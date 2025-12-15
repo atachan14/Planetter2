@@ -9,6 +9,11 @@ Planetter2 は、マップ上を移動しながら探索するSNSです。
 - HTML / CSS
 
 ## 起動方法
+
+### 公開版
+https://planetter2.onrender.com/
+
+### ローカル起動
 ```bash
 python app.py
 
