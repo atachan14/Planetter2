@@ -21,4 +21,4 @@ def index():
     if session.pop("show_landing", False):
         return render_template("landing.jinja", state=state)
 
-    return render_template("main.jinja", state=state)
+    return render_template("planet.jinja", state=state)

@@ -1,18 +1,12 @@
-{% extends 'base.jinja' %}
+{% extends 'base.jinja' %} {% block body %}
+<div class="main-root">
+  <header>{% include 'head-bar.jinja' %}</header>
 
-{% block body %}
-  <div class="main-root">
-    <header>
-      {% include 'header.jinja' %}
-    </header>
-
-    <main>
-      {% block content %}
-      {% endblock %}
-    </main>
-
-    <footer>
-      {% include 'footer.jinja' %}
-    </footer>
+  <div class="layout-cutter">
+    <main>{% block content %} {% endblock %}</main>
+    <aside>{% include 'aside-bar.jinja' %}</aside>
   </div>
+
+  <footer>{% include 'foot-bar.jinja' %}</footer>
+</div>
 {% endblock %}
