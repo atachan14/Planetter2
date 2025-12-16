@@ -27,7 +27,7 @@ def get_planet_tiles(cur, user_id):
     # --------------------------------------------------
     cur.execute("""
         SELECT id, name, width, height
-        FROM planet
+        FROM planets
         WHERE id = %s
     """, (planet_id,))
     planet_row = cur.fetchone()
@@ -55,16 +55,16 @@ def get_planet_tiles(cur, user_id):
             p.bad           AS post_bad,
 
             -- book summary
-            b.name          AS book_name
+            b.book_name          AS book_name
 
         FROM object_placements op
         JOIN objects o
             ON o.id = op.object_id
 
-        LEFT JOIN post p
+        LEFT JOIN posts p
             ON p.object_id = o.id
 
-        LEFT JOIN book b
+        LEFT JOIN books b
             ON b.object_id = o.id
 
         WHERE op.planet_id = %s
@@ -135,7 +135,9 @@ def get_planet_tiles(cur, user_id):
         "users": users,
     }
 
-
+# surroundings
+def get_surroundings():
+    return
 
 # walk
 def walk_player(cur, user_id):
@@ -197,64 +199,3 @@ def turn_player(cur, user_id, turn):
     }
 def rotate(dir, turn):
     return (dir + turn) % 4
-
-# surroundings
-def get_planet_tiles(cur, user_id):
-    # ① 自分の位置と planet サイズ
-    cur.execute(
-        """
-        SELECT u.planet_id, p.width, p.height
-        FROM users u
-        JOIN planets p ON u.planet_id = p.id
-        WHERE u.id = %s
-        """,
-        (user_id,)
-    )
-    row = cur.fetchone()
-    if row is None:
-        return None
-
-    cx, cy, planet_id, width, height = row
-
-    # ② 周囲3x3の座標を計算（トーラス）
-    coords = []
-    for dy in (-1, 0, 1):
-        for dx in (-1, 0, 1):
-            x = (cx + dx) % width
-            y = (cy + dy) % height
-            coords.append((x, y))
-
-    # ③ あるオブジェクトだけ取得
-    cur.execute(
-        """
-        SELECT x, y, object_id
-        FROM object_placements
-        WHERE planet_id = %s
-          AND (x, y) IN %s
-        """,
-        (planet_id, tuple(coords))
-    )
-    rows = cur.fetchall()
-
-    # ④ (x, y) → object_id の辞書に
-    placed = {(x, y): object_id for x, y, object_id in rows}
-
-    # ⑤ 3x3 を empty 補完して返す
-    result = []
-    for dy in (-1, 0, 1):
-        row_cells = []
-        for dx in (-1, 0, 1):
-            x = (cx + dx) % width
-            y = (cy + dy) % height
-            obj = placed.get((x, y))
-            row_cells.append({
-                "x": x,
-                "y": y,
-                "object_id": obj,  # None なら empty
-            })
-        result.append(row_cells)
-
-    return {
-        "center": {"x": cx, "y": cy},
-        "cells": result
-    }

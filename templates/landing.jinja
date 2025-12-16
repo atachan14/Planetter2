@@ -1,11 +1,6 @@
-{% extends "layout_main.jinja" %}
 
-{% block content %}
 <div class="landing-root">
-  <h2>{{ state.planet_name }}へようこそ！</h2>
+  <h2><span class="planet-name"></span>へようこそ！</h2>
 
-  <form method="GET" action="/">
-    <button>着陸する</button>
-  </form>
+  <button id="land-btn">着陸する</button>
 </div>
-{% endblock %}

@@ -1,6 +1,7 @@
 from flask import Blueprint, request, session, jsonify
 from db import get_db
 from services.planet import walk_player, turn_player, get_surroundings,get_planet_tiles
+from psycopg2.extras import RealDictCursor
 
 planet_bp = Blueprint("planet", __name__, url_prefix="/planet")
 
@@ -11,7 +12,7 @@ def planet_tiles():
         return jsonify({"error": "unauthorized"}), 401
 
     conn = get_db()
-    cur = conn.cursor()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
 
     try:
         data = get_planet_tiles(cur, session["user_id"])
@@ -20,7 +21,7 @@ def planet_tiles():
         cur.close()
         conn.close()
 
-@planet_bp.route("/walk", methods=["POST"])
+@planet_bp.route("/walk")
 def walk():
     if "user_id" not in session:
         return jsonify({"error": "unauthorized"}), 401
@@ -40,7 +41,7 @@ def walk():
     })
 
 
-@planet_bp.route("/turn", methods=["POST"])
+@planet_bp.route("/turn")
 def turn():
     if "user_id" not in session:
         return jsonify({"error": "unauthorized"}), 401
