@@ -61,7 +61,7 @@ async function showPlanet() {
   document.querySelector('main').innerHTML = html;
 
   const module = await import('/static/js/planet.js');
-  module.initPlanetEvents();
+  await module.initPlanet();
 }
 
 
