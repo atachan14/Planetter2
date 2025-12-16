@@ -12,13 +12,12 @@ def index():
     conn = get_db()
     cur = conn.cursor()
     state = get_user_state(cur, session["user_id"])
-    if state is None:
-        session.clear()
-        return redirect("/")
     cur.close()
     conn.close()
 
-    if session.pop("show_landing", False):
-        return render_template("landing.jinja", state=state)
+    if state is None:
+        session.clear()
+        return redirect("/")
 
-    return render_template("planet.jinja", state=state)
+    # ここでは「どの画面か」一切判断しない
+    return render_template("layout_main.jinja", state=state)

@@ -1,8 +1,24 @@
 from flask import Blueprint, request, session, jsonify
 from db import get_db
-from services.planet import walk_player, turn_player, get_surroundings
+from services.planet import walk_player, turn_player, get_surroundings,get_planet_tiles
 
-planet_bp = Blueprint("planet", __name__)
+planet_bp = Blueprint("planet", __name__, url_prefix="/planet")
+
+
+@planet_bp.route("/tiles")
+def planet_tiles():
+    if "user_id" not in session:
+        return jsonify({"error": "unauthorized"}), 401
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    try:
+        data = get_planet_tiles(cur, session["user_id"])
+        return jsonify(data)
+    finally:
+        cur.close()
+        conn.close()
 
 @planet_bp.route("/walk", methods=["POST"])
 def walk():
