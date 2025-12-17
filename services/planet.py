@@ -140,12 +140,16 @@ def fetch_planet_data(cur, user_id):
     }
 
 # surroundings
-def fetch_surround_data(cur, user_id):
+def fetch_surround_data():
     return {
         "dummy": True
     }
 
-
+# just-pos
+def fetch_just_pos_data(cur, object_id):
+    return{
+        "dummy": True
+    }
 
 
 

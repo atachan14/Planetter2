@@ -34,25 +34,16 @@ function renderSurroundData(data) {
     const key = el.dataset.pos;
     const tile = tiles[key] ?? { type: 'none' };
 
-    resetCell(el);
-    renderTile(el, tile);
+    resetSurroundCell(el);
+    renderSurroundTile(el, tile);
   });
 }
 
-// now-pos
-async function refreshJustPos() {
-  const data = await fetch('/planet/just-pos').then((r) => r.json());
-  window.nowPosData = data;
-  renderJustPos(data);
-}
-
-function renderJustPos(data) {}
-
-function resetCell(el) {
+function resetSurroundCell(el) {
   el.textContent = '';
   el.className = el.className.replace(/tile-\w+/g, '');
 }
-function renderTile(el, tile) {
+function renderSurroundTile(el, tile) {
   el.classList.add(`tile-${tile.type}`);
 
   switch (tile.type) {
@@ -80,6 +71,14 @@ function renderTile(el, tile) {
       el.textContent = '?';
   }
 }
+// now-pos
+async function refreshJustPos() {
+  const data = await fetch('/planet/just-pos').then((r) => r.json());
+  window.nowPosData = data;
+  renderJustPos(data);
+}
+
+function renderJustPos(data) {}
 
 /* 
 ========== action =========
