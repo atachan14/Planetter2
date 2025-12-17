@@ -1,10 +1,7 @@
 export async function initPlanet() {
   initPlanetEvents();
 
-  await Promise.all([
-    refreshSurroundings(),
-    refreshNowPos()
-  ]);
+  await Promise.all([refreshSurroundData(), refreshJustPos()]);
 }
 
 export function initPlanetEvents() {
@@ -24,16 +21,16 @@ export function initPlanetEvents() {
 }
 
 // surround
-async function refreshSurroundings() {
-  const data = await fetch('/planet/surroundings').then(r => r.json());
-  window.surroundings = data;
-  renderSurroundings(data);
+async function refreshSurroundData() {
+  const data = await fetch('/planet/surround').then((r) => r.json());
+  window.surroundData = data;
+  renderSurroundData(data);
 }
 
-function renderSurroundings(data) {
+function renderSurroundData(data) {
   const tiles = data.tiles;
 
-  document.querySelectorAll('[data-pos]').forEach(el => {
+  document.querySelectorAll('[data-pos]').forEach((el) => {
     const key = el.dataset.pos;
     const tile = tiles[key] ?? { type: 'none' };
 
@@ -43,11 +40,13 @@ function renderSurroundings(data) {
 }
 
 // now-pos
-async function refreshNowPos() {
-  const data = await fetch('/planet/now').then(r => r.json());
-  window.nowData = data;
-  renderNow(data);
+async function refreshJustPos() {
+  const data = await fetch('/planet/just-pos').then((r) => r.json());
+  window.nowPosData = data;
+  renderJustPos(data);
 }
+
+function renderJustPos(data) {}
 
 function resetCell(el) {
   el.textContent = '';
@@ -82,7 +81,9 @@ function renderTile(el, tile) {
   }
 }
 
-
+/* 
+========== action =========
+*/
 
 async function onWalk() {
   const res = await fetch('/planet/walk', {
@@ -94,7 +95,6 @@ async function onWalk() {
 
   console.log('walk result', data);
 }
-
 
 async function onTurn(turn) {
   const form = new URLSearchParams();

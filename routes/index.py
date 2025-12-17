@@ -19,5 +19,4 @@ def index():
         session.clear()
         return redirect("/")
 
-    # ここでは「どの画面か」一切判断しない
     return render_template("main.jinja", state=state)

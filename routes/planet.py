@@ -1,6 +1,6 @@
 from flask import Blueprint, request, session, jsonify
 from db import get_db
-from services.planet import walk_player, turn_player, get_surroundings,get_planet_tiles
+from services.planet import walk_user, turn_user, fetch_surround_data,fetch_planet_data
 from psycopg2.extras import RealDictCursor
 
 planet_bp = Blueprint("planet", __name__, url_prefix="/planet")
@@ -11,8 +11,8 @@ planet_bp = Blueprint("planet", __name__, url_prefix="/planet")
 # --------display-----------
 # ====================
 
-@planet_bp.route("/tiles")
-def planet_tiles():
+@planet_bp.route("/data")
+def state():
     if "user_id" not in session:
         return jsonify({"error": "unauthorized"}), 401
 
@@ -20,28 +20,30 @@ def planet_tiles():
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     try:
-        data = get_planet_tiles(cur, session["user_id"])
+        data = fetch_planet_data(cur, session["user_id"])
         return jsonify(data)
     finally:
         cur.close()
         conn.close()
 
-@planet_bp.route("/surroundings")
-def surroundings():
+@planet_bp.route("/surround")
+def surround():
     if "user_id" not in session:
         return jsonify({"error": "unauthorized"}), 401
 
-    return jsonify({
-        "tiles": {
-            "4": {"type": "none"},
-            "5": {"type": "player"},
-            "6": {"type": "post", "value": "hello"},
-            "7": {"type": "book", "name": "魔導書"},
-            "8": {"type": "page", "name": "はじめに"},
-            "9": {"type": "none"},
-        }
-    })
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        data = fetch_surround_data(cur, session["user_id"])
+        return jsonify(data)
+    finally:
+        cur.close()
+        conn.close()
 
+@planet_bp.route("/just-pos")
+def just_pos():
+    if "user_id" not in session:
+        return jsonify({"error": "unauthorized"}), 401
 
 
 
@@ -62,7 +64,7 @@ def walk():
     conn = get_db()
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    temp = walk_player(cur, session["user_id"])
+    temp = walk_user(cur, session["user_id"])
     if temp is None:
         return jsonify({"error": "invalid user"}), 400
 
@@ -92,8 +94,8 @@ def turn():
     conn = get_db()
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    turn_player(cur, session["user_id"], turn)
-    surroundings = get_surroundings(cur, session["user_id"])
+    turn_user(cur, session["user_id"], turn)
+    surroundings = fetch_surround_data(cur, session["user_id"])
 
     conn.commit()
     cur.close()

@@ -3,7 +3,7 @@
 # ====================
 
 # get_planet_tiles
-def get_planet_tiles(cur, user_id):
+def fetch_planet_data(cur, user_id):
     """
     惑星着陸時のスナップショットを返す
     {
@@ -118,7 +118,7 @@ def get_planet_tiles(cur, user_id):
             username,
             pos_x,
             pos_y,
-            dir
+            direction
         FROM users
         WHERE planet_id = %s
     """, (planet_id,))
@@ -130,7 +130,7 @@ def get_planet_tiles(cur, user_id):
             "username": row["username"],
             "x": row["pos_x"],
             "y": row["pos_y"],
-            "dir": row["dir"],
+            "direction": row["direction"],
         }
 
     return {
@@ -140,7 +140,7 @@ def get_planet_tiles(cur, user_id):
     }
 
 # surroundings
-def get_surroundings(cur, user_id):
+def fetch_surround_data(cur, user_id):
     return {
         "dummy": True
     }
@@ -161,17 +161,17 @@ def get_surroundings(cur, user_id):
 # ====================
 
 # walk
-DIR_TO_DELTA = {
+DIRECTION_TO_DELTA = {
     0: (0, -1),
     1: (1, 0),
     2: (0, 1),
     3: (-1, 0),
 }
 
-def walk_player(cur, user_id):
+def walk_user(cur, user_id):
     cur.execute(
         """
-        SELECT u.pos_x, u.pos_y, u.dir, u.planet_id, p.width, p.height
+        SELECT u.pos_x, u.pos_y, u.direction, u.planet_id, p.width, p.height
         FROM users u
         JOIN planets p ON u.planet_id = p.id
         WHERE u.id = %s
@@ -185,12 +185,12 @@ def walk_player(cur, user_id):
 
     x = row["pos_x"]
     y = row["pos_y"]
-    direction = row["dir"]
+    direction = row["direction"]
     planet_id = row["planet_id"]
     width = row["width"]
     height = row["height"]
 
-    dx, dy = DIR_TO_DELTA[direction]
+    dx, dy = DIRECTION_TO_DELTA[direction]
 
     new_x = (x + dx) % width
     new_y = (y + dy) % height
@@ -208,23 +208,23 @@ def walk_player(cur, user_id):
 
 
 # turn
-def turn_player(cur, user_id, turn):
+def turn_user(cur, user_id, turn):
     cur.execute(
-        "SELECT dir, planet_id FROM players WHERE user_id = %s",
+        "SELECT direction, planet_id FROM users WHERE id = %s",
         (user_id,)
     )
-    dir, planet_id = cur.fetchone()
+    direction, planet_id = cur.fetchone()
 
-    new_dir = rotate(dir, turn)
+    new_direction = rotate(direction, turn)
 
     cur.execute(
-        "UPDATE players SET dir = %s WHERE user_id = %s",
-        (new_dir, user_id)
+        "UPDATE users SET direction = %s WHERE id = %s",
+        (new_direction, user_id)
     )
 
     return {
         "planet_id": planet_id,
         "r": 1
     }
-def rotate(dir, turn):
-    return (dir + turn) % 4
+def rotate(direction, turn):
+    return (direction + turn) % 4

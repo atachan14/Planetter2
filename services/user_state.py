@@ -4,7 +4,8 @@ def get_user_state(cur, user_id):
             u.username,
             u.pos_x,
             u.pos_y,
-            u.dir,
+            u.direction,
+            u.created_at,
             p.id AS planet_id,
             p.name AS planet_name
         FROM users u
@@ -18,7 +19,8 @@ def get_user_state(cur, user_id):
         "user_name": row[0],
         "pos_x": row[1],
         "pos_y": row[2],
-        "dir": row[3],
-        "planet_id": row[4],
-        "planet_name": row[5],
+        "direction": row[3],
+        "created_at": row[4],
+        "planet_id": row[5],
+        "planet_name": row[6],
     }

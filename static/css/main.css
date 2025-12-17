@@ -57,16 +57,13 @@ body {
 .main-root footer {
   height: 5vh;
 }
-.main-root .main-area {
-  flex: 1;
-  position: relative;
-}
 .main-root .layout-cutter {
   display: flex;
-  height: 100%;
+  flex: 1;
 }
 .main-root main {
   flex: 1;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -146,6 +143,15 @@ body {
 .landing-root {
   display: flex;
   flex-direction: column;
+  flex: 1; /* ← 100% じゃなくて flex */
+}
+
+.section {
+  flex: 1;
+}
+
+.landing-image {
+  height: 50vh;
 }
 /* planet-grid */
 .planet-layout {

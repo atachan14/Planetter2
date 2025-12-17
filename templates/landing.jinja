@@ -1,6 +1,14 @@
-
 <div class="landing-root">
-  <h2><span class="planet-name"></span>へようこそ！</h2>
+  <div class="section">
+    <img
+      class="landing-image"
+      src="{{ url_for('static', filename='img/landing.png') }}"
+      alt="landing"
+    />
+  </div>
+  <div class="section">
+    <h2><span class="planet-name"></span>へようこそ！</h2>
 
-  <button id="land-btn">着陸する</button>
+    <button data-action="landing">着陸する</button>
+  </div>
 </div>

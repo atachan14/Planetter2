@@ -10,9 +10,13 @@ BEGINNERS_PLANET_ID = 1
 
 @auth_bp.route("/login", methods=["POST"])
 def login_submit():
+    
     username = request.form.get("username")
     password = request.form.get("password")
 
+    if not username or not password:
+        return render_template("top.jinja", error="未入力")
+    
     conn = get_db()
     cur = conn.cursor()
 
@@ -34,7 +38,6 @@ def login_submit():
     
        # 着陸
         land_on_planet(cur,user_id,BEGINNERS_PLANET_ID)
-        session["show_landing"] = True
         conn.commit()
 
     else:
