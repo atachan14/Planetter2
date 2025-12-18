@@ -8,7 +8,7 @@ def fetch_planet_data(cur, user_id):
     惑星着陸時のスナップショットを返す
     {
       planet: {...},
-      tiles: { "x,y": {...} },
+      objects: { "x,y": {...} },
       users: { user_id: {...} }
     }
     """
@@ -30,17 +30,21 @@ def fetch_planet_data(cur, user_id):
     # ② 惑星情報
     # --------------------------------------------------
     cur.execute("""
-        SELECT id, name, width, height
+        SELECT id, name, width, height,created_at
         FROM planets
         WHERE id = %s
     """, (planet_id,))
     planet_row = cur.fetchone()
+    if planet_row is None:
+        raise Exception("planet not found")
+
 
     planet = {
         "id": planet_row["id"],
         "name": planet_row["name"],
         "width": planet_row["width"],
         "height": planet_row["height"],
+        "created_at": planet_row["created_at"]
     }
 
     # --------------------------------------------------
@@ -48,64 +52,26 @@ def fetch_planet_data(cur, user_id):
     # --------------------------------------------------
     cur.execute("""
         SELECT
-            o.id            AS object_id,
-            o.kind          AS kind,
-            op.x            AS x,
-            op.y            AS y,
-
-            -- post summary
-            p.value         AS post_value,
-            p.good          AS post_good,
-            p.bad           AS post_bad,
-
-            -- book summary
-            b.book_name          AS book_name
-
+          o.id,
+          o.kind,
+          o.surround_text,
+          op.x,
+          op.y
         FROM object_placements op
-        JOIN objects o
-            ON o.id = op.object_id
-
-        LEFT JOIN posts p
-            ON p.object_id = o.id
-
-        LEFT JOIN books b
-            ON b.object_id = o.id
-
+        JOIN objects o ON o.id = op.object_id
         WHERE op.planet_id = %s
     """, (planet_id,))
 
-    tiles = {}
+    objects = {}
 
     for row in cur.fetchall():
         key = f"{row['x']},{row['y']}"
 
-        # kindごとにsummaryを組み立てる
-        if row["kind"] == "post":
-            summary = {
-                "value": row["post_value"],
-                "good": row["post_good"],
-                "bad": row["post_bad"],
-            }
-        elif row["kind"] == "page":
-            summary = {
-                "page_name": row["page_name"],
-            }
-        elif row["kind"] == "book":
-            summary = {
-                "book_name": row["book_name"],
-            }
-        elif row["kind"] == "shelf":
-            summary = {
-                "shelf_name": row["shelf_name"],
-            }
-        else:
-            summary = {}
-
-        tiles[key] = {
+        objects[key] = {
             "object": {
-                "id": row["object_id"],
+                "id": row["id"],
                 "kind": row["kind"],
-                "summary": summary,
+                "surround_text": row["surround_text"] or {},
             }
         }
 
@@ -117,8 +83,7 @@ def fetch_planet_data(cur, user_id):
             id,
             username,
             pos_x,
-            pos_y,
-            direction
+            pos_y
         FROM users
         WHERE planet_id = %s
     """, (planet_id,))
@@ -130,29 +95,36 @@ def fetch_planet_data(cur, user_id):
             "username": row["username"],
             "x": row["pos_x"],
             "y": row["pos_y"],
-            "direction": row["direction"],
         }
 
     return {
         "planet": planet,
-        "tiles": tiles,
+        "objects": objects,
         "users": users,
     }
 
 # surroundings
-def fetch_surround_data():
+def fetch_surround_data(cur, user_id):
+
+
     return {
         "dummy": True
     }
 
 # just-pos
-def fetch_just_pos_data(cur, object_id):
+def fetch_here_data(cur, object_id):
     return{
         "dummy": True
     }
 
 
-
+def get_current_user(cur,user_id):
+    cur.execute("""
+        SELECT id, planet_id, x, y,direction
+        FROM users
+        WHERE id = %s
+    """, (user_id,))
+    return cur.fetchone()
 
 
 

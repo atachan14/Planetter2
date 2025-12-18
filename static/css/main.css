@@ -176,6 +176,13 @@ body {
 .planet-grid .surround {
   font-size: 0.75rem;
 }
+.planet-post {
+  display: flex;
+}
+.post-field {
+  flex: 1;
+  resize: none;
+}
 .planet-move {
   height: 2em;
   display: flex;

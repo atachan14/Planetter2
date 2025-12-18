@@ -1,84 +1,104 @@
 export async function initPlanet() {
   initPlanetEvents();
 
-  await Promise.all([refreshSurroundData(), refreshJustPos()]);
+  renderSurround();
+  await renderHere();
 }
 
 export function initPlanetEvents() {
-  const walkBtn = document.querySelector('.walk-btn');
-  const leftBtn = document.querySelector('.left-turn-btn');
-  const rightBtn = document.querySelector('.right-turn-btn');
+  document.addEventListener('click', (e) => {
+    const action = e.target.dataset.action;
+    if (!action) return;
 
-  if (walkBtn) {
-    walkBtn.addEventListener('click', onWalk);
-  }
-  if (leftBtn) {
-    leftBtn.addEventListener('click', () => onTurn(-1));
-  }
-  if (rightBtn) {
-    rightBtn.addEventListener('click', () => onTurn(1));
-  }
-}
-
-// surround
-async function refreshSurroundData() {
-  const data = await fetch('/planet/surround').then((r) => r.json());
-  window.surroundData = data;
-  renderSurroundData(data);
-}
-
-function renderSurroundData(data) {
-  const tiles = data.tiles;
-
-  document.querySelectorAll('[data-pos]').forEach((el) => {
-    const key = el.dataset.pos;
-    const tile = tiles[key] ?? { type: 'none' };
-
-    resetSurroundCell(el);
-    renderSurroundTile(el, tile);
+    switch (action) {
+      case 'walk':
+        onWalk();
+        break;
+      case 'turn-left':
+        onTurn(-1);
+        break;
+      case 'turn-right':
+        onTurn(1);
+        break;
+    }
   });
 }
-
-function resetSurroundCell(el) {
-  el.textContent = '';
-  el.className = el.className.replace(/tile-\w+/g, '');
-}
-function renderSurroundTile(el, tile) {
-  el.classList.add(`tile-${tile.type}`);
-
-  switch (tile.type) {
-    case 'none':
-      el.textContent = 'None';
-      break;
-
-    case 'post':
-      el.textContent = tile.value;
-      break;
-
-    case 'page':
-      el.textContent = tile.name;
-      break;
-
-    case 'book':
-      el.textContent = tile.name;
-      break;
-
-    case 'player':
-      el.textContent = 'YOU';
-      break;
-
+// surround
+function rotate(dx, dy, dir) {
+  switch (dir) {
+    case 0:
+      return { dx, dy }; // 上
+    case 1:
+      return { dx: -dy, dy: dx }; // 右
+    case 2:
+      return { dx: -dx, dy: -dy }; // 下
+    case 3:
+      return { dx: dy, dy: -dx }; // 左
     default:
-      el.textContent = '?';
+      return { dx, dy };
   }
 }
-// now-pos
-async function refreshJustPos() {
-  const data = await fetch('/planet/just-pos').then((r) => r.json());
-  window.nowPosData = data;
-  renderJustPos(data);
+
+const SURROUND_BASE = {
+  7: { dx: -1, dy: -1 },
+  8: { dx: 0, dy: -1 },
+  9: { dx: 1, dy: -1 },
+  4: { dx: -1, dy: 0 },
+  6: { dx: 1, dy: 0 },
+};
+
+export function renderSurround() {
+  const { x: cx, y: cy, direction: dir } = window.userState;
+  const objects = window.planetData.objects; // {"x,y": {object:{id,kind,surround_text}}}
+
+  const posList = [7, 8, 9, 4, 6]; // 123は無し、5はhereで描く
+
+  for (const pos of posList) {
+    const el = document.querySelector(`[data-pos="${pos}"]`);
+    if (!el) continue;
+
+    // reset（必要ならクラス名のベースをtile固定に）
+    el.className = 'tile';
+    el.textContent = '';
+
+    const base = SURROUND_BASE[pos];
+    const off = rotate(base.dx, base.dy, dir);
+
+    const tx = cx + off.dx;
+    const ty = cy + off.dy;
+    const key = `${tx},${ty}`;
+
+    const obj = objects[key]?.object ?? null;
+
+    if (!obj) {
+      el.classList.add('none');
+      el.textContent = 'none';
+      continue;
+    }
+
+    // kindをclassに入れる
+    el.classList.add(obj.kind ?? 'none');
+
+    // surround_textは「表示するだけ」
+    const st = obj.surround_text;
+
+    if (st === null || st === undefined) {
+      el.textContent = 'none';
+    } else if (typeof st === 'string') {
+      el.textContent = st;
+    } else if (typeof st === 'object') {
+      // objectなら、とりあえず見える形に（後で好みに整形）
+      el.textContent = JSON.stringify(st);
+    } else {
+      el.textContent = String(st);
+    }
+  }
 }
 
-function renderJustPos(data) {}
+// here
+async function renderHere() {
+  window.here = await fetch('/planet/here').then((r) => r.json());
+}
 
 /* 
 ========== action =========

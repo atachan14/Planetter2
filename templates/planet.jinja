@@ -9,9 +9,20 @@
     <div class="surround" data-pos="6"></div>
   </div>
 
-  <div class="planet-move">
-    <button class="left-turn-btn">左を向く</button>
-    <button class="walk-btn">歩く</button>
-    <button class="right-turn-btn">右を向く</button>
+  <div class="planet-action">
+    <div class="planet-post">
+      <textarea
+        class="post-field"
+        name="post"
+        rows="3"
+        placeholder=""
+      ></textarea>
+      <button class="post-btn">Post</button>
+    </div>
+    <div class="planet-move">
+      <button data-action="turn-left">左を向く</button>
+      <button data-action="walk">歩く</button>
+      <button data-action="turn-right">右を向く</button>
+    </div>
   </div>
 </div>

@@ -17,14 +17,19 @@ async function init() {
   updateUI();
 }
 
-import { calcSurviveDays } from './time.js';
+import { calcSurviveDays as calcAge } from './time.js';
 
 function updateUI() {
   document.querySelectorAll('[data-bind]').forEach((el) => {
     const key = el.dataset.bind;
 
-    if (key === 'survive') {
-      el.textContent = calcSurviveDays(window.userState.created_at);
+    if (key === 'user_age') {
+      el.textContent = calcAge(window.userState.created_at);
+      return;
+    }
+
+    if (key === 'planet_age') {
+      el.textContent = calcAge(window.planetData.created_at);
       return;
     }
 
