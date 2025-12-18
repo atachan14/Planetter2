@@ -17,7 +17,7 @@ async function init() {
   updateUI();
 }
 
-import { calcSurviveDays as calcAge } from './time.js';
+import { calcAge as calcAge } from './time.js';
 
 function updateUI() {
   document.querySelectorAll('[data-bind]').forEach((el) => {
@@ -28,10 +28,10 @@ function updateUI() {
       return;
     }
 
-    if (key === 'planet_age') {
-      el.textContent = calcAge(window.planetData.created_at);
-      return;
-    }
+    // if (key === 'planet_age') {
+    //   el.textContent = calcAge(window.planetData.created_at);
+    //   return;
+    // }
 
     if (window.userState[key] !== undefined) {
       el.textContent = window.userState[key];

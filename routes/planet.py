@@ -1,6 +1,6 @@
 from flask import Blueprint, request, session, jsonify
 from db import get_db
-from services.planet import walk_user, turn_user, fetch_surround_data,fetch_planet_data,fetch_here_data
+from services.planet import walk_user, turn_user, fetch_planet_data,fetch_here_data
 from psycopg2.extras import RealDictCursor
 
 planet_bp = Blueprint("planet", __name__, url_prefix="/planet")
@@ -26,19 +26,6 @@ def state():
         cur.close()
         conn.close()
 
-@planet_bp.route("/surround")
-def surround():
-    if "user_id" not in session:
-        return jsonify({"error": "unauthorized"}), 401
-
-    conn = get_db()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    try:
-        data = fetch_surround_data(cur, session["user_id"])
-        return jsonify(data)
-    finally:
-        cur.close()
-        conn.close()
 
 @planet_bp.route("/here")
 def just_pos():
@@ -62,7 +49,7 @@ def just_pos():
 
 # ========================
 # --------action-----------
-# ====================
+# ========================
 
 @planet_bp.route("/walk", methods=["POST"])
 def walk():

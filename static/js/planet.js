@@ -1,28 +1,56 @@
 export async function initPlanet() {
   initPlanetEvents();
-
+  await renderPlanet();
+}
+export async function renderPlanet() {
   renderSurround();
   await renderHere();
 }
 
 export function initPlanetEvents() {
-  document.addEventListener('click', (e) => {
-    const action = e.target.dataset.action;
-    if (!action) return;
+  document.addEventListener('click', async (e) => {
+    if (e.target.dataset.action) {
+      await handleAction(e.target.dataset.action);
+      return;
+    }
 
-    switch (action) {
-      case 'walk':
-        onWalk();
-        break;
-      case 'turn-left':
-        onTurn(-1);
-        break;
-      case 'turn-right':
-        onTurn(1);
-        break;
+    if (e.target.dataset.ui) {
+      handleUI(e.target.dataset.ui);
+      return;
     }
   });
 }
+
+async function handleAction(action) {
+  switch (action) {
+    case 'walk':
+      await onWalk();
+      break;
+    case 'turn-left':
+      await onTurn(-1);
+      break;
+    case 'turn-right':
+      await onTurn(1);
+      break;
+    case 'post':
+      await onPost();
+      break;
+  }
+
+  await renderPlanet();
+}
+
+function handleUI(ui) {
+  switch (ui) {
+    case 'open-menu':
+      openMenu();
+      break;
+    case 'close-menu':
+      closeMenu();
+      break;
+  }
+}
+
 // surround
 function rotate(dx, dy, dir) {
   switch (dir) {
@@ -57,8 +85,6 @@ export function renderSurround() {
     const el = document.querySelector(`[data-pos="${pos}"]`);
     if (!el) continue;
 
-    // reset（必要ならクラス名のベースをtile固定に）
-    el.className = 'tile';
     el.textContent = '';
 
     const base = SURROUND_BASE[pos];
@@ -82,22 +108,32 @@ export function renderSurround() {
     // surround_textは「表示するだけ」
     const st = obj.surround_text;
 
-    if (st === null || st === undefined) {
-      el.textContent = 'none';
-    } else if (typeof st === 'string') {
-      el.textContent = st;
-    } else if (typeof st === 'object') {
-      // objectなら、とりあえず見える形に（後で好みに整形）
-      el.textContent = JSON.stringify(st);
-    } else {
-      el.textContent = String(st);
-    }
+    el.textContent = st ?? 'none';
+
   }
 }
 
 // here
-async function renderHere() {
-  window.here = await fetch('/planet/here').then((r) => r.json());
+export async function renderHere() {
+  const { x, y } = window.userState;
+  const key = `${x},${y}`;
+  const obj = window.planetData.objects[key]?.object ?? null;
+
+  if (!obj || obj.kind === "none") {
+    const html = await fetch('/partial/here/none').then((r) => r.text());
+    document.querySelector(`[data-pos="5"]`).innerHTML = html;
+    return;
+  }
+
+  if (obj.kind === "post") {
+    const html = await fetch('/partial/here/post').then((r) => r.text());
+    document.querySelector(`[data-pos="5"]`).innerHTML = html;
+    return;
+  }
+
+  // 将来用（shelf / book など）
+  const here = await fetch("/planet/here").then(r => r.json());
+  renderHereByKind(here);
 }
 
 /* 
@@ -110,7 +146,7 @@ async function onWalk() {
   });
 
   const data = await res.json();
-  window.surroundings = data.surroundings;
+  window.userState = data.surroundings;
 
   console.log('walk result', data);
 }
@@ -125,8 +161,19 @@ async function onTurn(turn) {
   });
   const data = await res.json();
 
-  window.surroundings = data.surroundings;
+  window.planetData = data.surroundings;
 
   console.log('turn result', data);
   // TODO: 周囲UI更新
+}
+
+async function onPost() {
+  const res = await fetch('/planet/post', {
+    method: 'POST',
+  });
+
+  const data = await res.json();
+  window.planetData = data.surroundings;
+
+  console.log('walk result', data);
 }

@@ -1,5 +1,5 @@
 // time.js
-export function calcSurviveDays(createdAt, now = new Date()) {
+export function calcAge(createdAt, now = new Date()) {
   if (!createdAt) return 0;
 
   const created = new Date(createdAt);

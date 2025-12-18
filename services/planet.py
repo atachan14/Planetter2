@@ -103,13 +103,6 @@ def fetch_planet_data(cur, user_id):
         "users": users,
     }
 
-# surroundings
-def fetch_surround_data(cur, user_id):
-
-
-    return {
-        "dummy": True
-    }
 
 # just-pos
 def fetch_here_data(cur, object_id):
