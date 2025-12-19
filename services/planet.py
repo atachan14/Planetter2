@@ -68,12 +68,11 @@ def fetch_planet_data(cur, user_id):
         key = f"{row['x']},{row['y']}"
 
         objects[key] = {
-            "object": {
-                "id": row["id"],
-                "kind": row["kind"],
-                "surround_text": row["surround_text"] or {},
-            }
+            "id": row["id"],
+            "kind": row["kind"],
+            "surround_text": row["surround_text"] or "",
         }
+        
 
     # --------------------------------------------------
     # ④ 同じ惑星にいるユーザー
@@ -104,7 +103,7 @@ def fetch_planet_data(cur, user_id):
     }
 
 
-# just-pos
+# here
 def fetch_here_data(cur, object_id):
     return{
         "dummy": True
@@ -118,7 +117,6 @@ def get_current_user(cur,user_id):
         WHERE id = %s
     """, (user_id,))
     return cur.fetchone()
-
 
 
 
@@ -197,3 +195,56 @@ def turn_user(cur, user_id, turn):
     }
 def rotate(direction, turn):
     return (direction + turn) % 4
+
+def post_user(cur, user_id: int, value: str):
+    # 1. ユーザー存在確認 + 現在座標取得
+    cur.execute(
+        """
+        SELECT id, planet_id, pos_x, pos_y
+        FROM users
+        WHERE id = %s
+        """,
+        (user_id,)
+    )
+    user = cur.fetchone()
+    if user is None:
+        return None
+
+    # 2. objects 作成
+    cur.execute(
+        """
+        INSERT INTO objects (kind,surround_text)
+        VALUES ('post', %s)
+        RETURNING id
+        """,
+        (value,)
+    )
+    object_id = cur.fetchone()["id"]
+
+    # 3. object_placements に配置
+    cur.execute(
+        """
+        INSERT INTO object_placements (object_id, planet_id, x, y)
+        VALUES (%s, %s, %s, %s)
+        """,
+        (object_id, user["planet_id"], user["pos_x"], user["pos_y"])
+    )
+
+    # 4. posts に本文保存
+    cur.execute(
+        """
+        INSERT INTO posts (object_id, value, created_user)
+        VALUES (%s, %s, %s)
+        """,
+        (object_id, value, user["id"])
+    )
+
+    # 5. 返却用データ（HTTP / WS 共通）
+    return {
+        "object_id": object_id,
+        "kind": "post",
+        "surround_text": value,
+        "planet_id": user["planet_id"],
+        "x": user["pos_x"],
+        "y": user["pos_y"],
+    }

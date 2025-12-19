@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function init() {
-  if (!window.userState) {
-    window.userState = await fetch('/api/user_state').then((r) => r.json());
+  if (!window.userData) {
+    window.userData = await fetch('/api/user_state').then((r) => r.json());
   }
 
   if (!window.planetData) {
@@ -24,17 +24,16 @@ function updateUI() {
     const key = el.dataset.bind;
 
     if (key === 'user_age') {
-      el.textContent = calcAge(window.userState.created_at);
+      el.textContent = calcAge(window.userData.created_at);
       return;
     }
-
     // if (key === 'planet_age') {
     //   el.textContent = calcAge(window.planetData.created_at);
     //   return;
     // }
 
-    if (window.userState[key] !== undefined) {
-      el.textContent = window.userState[key];
+    if (window.userData[key] !== undefined) {
+      el.textContent = window.userData[key];
     }
   });
 }

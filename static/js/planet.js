@@ -76,7 +76,7 @@ const SURROUND_BASE = {
 };
 
 export function renderSurround() {
-  const { x: cx, y: cy, direction: dir } = window.userState;
+  const { pos_x: cx, pos_y: cy, direction: dir } = window.userData;
   const objects = window.planetData.objects; // {"x,y": {object:{id,kind,surround_text}}}
 
   const posList = [7, 8, 9, 4, 6]; // 123は無し、5はhereで描く
@@ -94,46 +94,34 @@ export function renderSurround() {
     const ty = cy + off.dy;
     const key = `${tx},${ty}`;
 
-    const obj = objects[key]?.object ?? null;
+    const obj = objects[key] ?? null;
 
-    if (!obj) {
-      el.classList.add('none');
-      el.textContent = 'none';
-      continue;
-    }
-
-    // kindをclassに入れる
-    el.classList.add(obj.kind ?? 'none');
-
-    // surround_textは「表示するだけ」
-    const st = obj.surround_text;
-
-    el.textContent = st ?? 'none';
-
+    el.classList.add(obj?.kind ?? 'none');
+    el.textContent = obj?.surround_text ?? 'none';
   }
 }
 
 // here
 export async function renderHere() {
-  const { x, y } = window.userState;
-  const key = `${x},${y}`;
-  const obj = window.planetData.objects[key]?.object ?? null;
+  const HERE_POS = '5';
+  const { pos_x, pos_y } = window.userData;
+  const key = `${pos_x},${pos_y}`;
+  const obj = window.planetData.objects[key] ?? null;
 
-  if (!obj || obj.kind === "none") {
+  if (!obj) {
     const html = await fetch('/partial/here/none').then((r) => r.text());
     document.querySelector(`[data-pos="5"]`).innerHTML = html;
     return;
   }
 
-  if (obj.kind === "post") {
-    const html = await fetch('/partial/here/post').then((r) => r.text());
-    document.querySelector(`[data-pos="5"]`).innerHTML = html;
-    return;
+  window.hereData = await fetch('/planet/here').then((r) => r.json());
+  const res = await fetch(`/partial/here/${obj.kind}`);
+  if (!res.ok) {
+    throw new Error(`unknown here kind: ${obj.kind}`);
   }
 
-  // 将来用（shelf / book など）
-  const here = await fetch("/planet/here").then(r => r.json());
-  renderHereByKind(here);
+  const html = await res.text();
+  document.querySelector(`[data-pos="${HERE_POS}"]`).innerHTML = html;
 }
 
 /* 
@@ -146,7 +134,7 @@ async function onWalk() {
   });
 
   const data = await res.json();
-  window.userState = data.surroundings;
+  window.userData = data.surroundings;
 
   console.log('walk result', data);
 }
@@ -164,16 +152,30 @@ async function onTurn(turn) {
   window.planetData = data.surroundings;
 
   console.log('turn result', data);
-  // TODO: 周囲UI更新
 }
 
 async function onPost() {
+  const textarea = document.querySelector('[data-field="post-textarea"]');
+  if (!textarea) return;
+
+  const text = textarea.value.trim();
+  if (!text) return; // 空投稿は黙って無視
+
   const res = await fetch('/planet/post', {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
   });
 
   const data = await res.json();
-  window.planetData = data.surroundings;
+  const key = `${data.x},${data.y}`;
 
-  console.log('walk result', data);
+  window.planetData.objects[key] = {
+    id: data.object_id,
+    kind: data.kind,
+    surround_text: data.surround_text,
+  };
+  // window.planetData.objects[(data.x, data.y)]????
+
+  console.log('post result', data);
 }

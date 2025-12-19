@@ -15,3 +15,12 @@ def planet():
 @partial_bp.route("/here/none")
 def here_none():
     return render_template("here/none.jinja")
+
+@partial_bp.route("/here/post")
+def here_post():
+    return render_template("here/post.jinja")
+
+@partial_bp.route("/here/page")
+def here_page():
+    return render_template("here/page.jinja")
+
