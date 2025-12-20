@@ -26,6 +26,10 @@ button {
   display: flex;
   justify-content: center;
 }
+.glay-text {
+  color: #eee;
+  font-size: 0.75em;
+}
 
 /* body */
 body {
@@ -44,6 +48,7 @@ body {
 /* top */
 .top-root h1 {
   font-size: clamp(3rem, 10vw, 15rem);
+  margin: 0.5em 0;
 }
 .login-box {
   display: flex;
@@ -145,6 +150,9 @@ body {
 }
 .foot-bar h1 {
   font-size: 1rem;
+}
+.foot-bar .flex-row {
+  gap: 2em;
 }
 
 /* aside-bar */

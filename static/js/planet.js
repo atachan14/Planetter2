@@ -32,8 +32,8 @@ async function handleAction(action) {
     case 'turn-right':
       await onTurn(1);
       break;
-    case 'post':
-      await onPost();
+    case 'post-to-tile':
+      await onPostToTile();
       break;
   }
 
@@ -76,8 +76,8 @@ const SURROUND_BASE = {
 };
 
 export function renderSurround() {
-  const { pos_x: cx, pos_y: cy, direction: dir } = window.userData;
-  const objects = window.planetData.objects; // {"x,y": {object:{id,kind,surround_text}}}
+  const { x: cx, y: cy, direction: dir } = window.selfData;
+  const tiles = window.planetData.tiles; // {"x,y": {object:{id,kind,content}}}
 
   const posList = [7, 8, 9, 4, 6]; // 123は無し、5はhereで描く
 
@@ -94,19 +94,19 @@ export function renderSurround() {
     const ty = cy + off.dy;
     const key = `${tx},${ty}`;
 
-    const obj = objects[key] ?? null;
+    const obj = tiles[key] ?? null;
 
     el.classList.add(obj?.kind ?? 'none');
-    el.textContent = obj?.surround_text ?? 'none';
+    el.textContent = obj?.content ?? 'none';
   }
 }
 
 // here
 export async function renderHere() {
   const HERE_POS = '5';
-  const { pos_x, pos_y } = window.userData;
-  const key = `${pos_x},${pos_y}`;
-  const obj = window.planetData.objects[key] ?? null;
+  const { x, y } = window.selfData;
+  const key = `${x},${y}`;
+  const obj = window.planetData.tiles[key] ?? null;
 
   if (!obj) {
     const html = await fetch('/partial/here/none').then((r) => r.text());
@@ -114,7 +114,7 @@ export async function renderHere() {
     return;
   }
 
-  window.hereData = await fetch('/planet/here').then((r) => r.json());
+  window.hereData = await fetch('/data/here').then((r) => r.json());
   const res = await fetch(`/partial/here/${obj.kind}`);
   if (!res.ok) {
     throw new Error(`unknown here kind: ${obj.kind}`);
@@ -129,12 +129,12 @@ export async function renderHere() {
 */
 
 async function onWalk() {
-  const res = await fetch('/planet/walk', {
+  const res = await fetch('/action/move/walk', {
     method: 'POST',
   });
 
   const data = await res.json();
-  window.userData = data.surroundings;
+  window.selfData = data.surroundings;
 
   console.log('walk result', data);
 }
@@ -143,7 +143,7 @@ async function onTurn(turn) {
   const form = new URLSearchParams();
   form.append('turn', turn);
 
-  const res = await fetch('/planet/turn', {
+  const res = await fetch('/action/move//turn', {
     method: 'POST',
     body: form,
   });
@@ -154,14 +154,14 @@ async function onTurn(turn) {
   console.log('turn result', data);
 }
 
-async function onPost() {
+async function onPostToTile() {
   const textarea = document.querySelector('[data-field="post-textarea"]');
   if (!textarea) return;
 
   const text = textarea.value.trim();
   if (!text) return; // 空投稿は黙って無視
 
-  const res = await fetch('/planet/post', {
+  const res = await fetch('/action/create/post/to-tile', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ text }),
@@ -170,12 +170,11 @@ async function onPost() {
   const data = await res.json();
   const key = `${data.x},${data.y}`;
 
-  window.planetData.objects[key] = {
+  window.planetData.tiles[key] = {
     id: data.object_id,
     kind: data.kind,
-    surround_text: data.surround_text,
+    content: data.content,
   };
-  // window.planetData.objects[(data.x, data.y)]????
 
   console.log('post result', data);
 }

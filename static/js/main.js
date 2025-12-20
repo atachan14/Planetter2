@@ -4,11 +4,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function init() {
-  if (!window.userData) {
-    window.userData = await fetch('/api/user_state').then((r) => r.json());
+  if (!window.selfData) {
+    window.selfData = await fetch('/data/user').then((r) => r.json());
   }
 
   if (!window.planetData) {
+    window.planetData = await fetch('/data/planet').then((r) => r.json());
     await showLanding();
   } else {
     await showPlanet();
@@ -21,19 +22,27 @@ import { calcAge as calcAge } from './time.js';
 
 function updateUI() {
   document.querySelectorAll('[data-bind]').forEach((el) => {
-    const key = el.dataset.bind;
+    const bind = el.dataset.bind;
 
-    if (key === 'user_age') {
-      el.textContent = calcAge(window.userData.created_at);
+    // 特殊計算系は最優先で拾う
+    if (bind === 'self_age') {
+      el.textContent = calcAge(window.selfData.created_at);
       return;
     }
-    // if (key === 'planet_age') {
-    //   el.textContent = calcAge(window.planetData.created_at);
-    //   return;
-    // }
+    if (bind === 'planet_age') {
+      el.textContent = calcAge(window.planetData.planet.created_at);
+      return;
+    }
 
-    if (window.userData[key] !== undefined) {
-      el.textContent = window.userData[key];
+    // 通常バインド: "user.xxx" / "planet.xxx"
+    const [scope, key] = bind.split('.');
+
+    let source = null;
+    if (scope === 'self') source = window.selfData;
+    if (scope === 'planet') source = window.planetData.planet;
+
+    if (source && source[key] !== undefined) {
+      el.textContent = source[key];
     }
   });
 }
@@ -49,12 +58,8 @@ function initLandingEvents() {
     const btn = e.target.closest('[data-action="landing"]');
     if (!btn) return;
 
-    // 惑星データ取得
-    window.planetData = await fetch('/planet/data').then((r) => r.json());
-
     // 惑星画面へ
     await showPlanet();
-    updateUI();
   });
 }
 
@@ -64,4 +69,6 @@ async function showPlanet() {
 
   const module = await import('/static/js/planet.js');
   await module.initPlanet();
+
+  updateUI();
 }

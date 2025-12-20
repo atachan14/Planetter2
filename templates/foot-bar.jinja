@@ -1,5 +1,10 @@
-<div class="foot-bar">
-  <div><span data-bind="user_age"></span>日目</div>
-  <h1 class="site-title">Planetter2</h1>
-  <div>星屑:<span data-bind="stardust"></span></div>
+<div class="foot-bar flex-row">
+  <div class="flex-row">
+    <form method="POST" action="/logout">
+      <button type="submit" class="logout">ログアウト</button>
+    </form>
+    <div><span data-bind="self.username"></span></div>
+    <div class="glay-text"><span data-bind="self_age"></span>日目</div>
+  </div>
+  <div class="flex-row">星屑:<span data-bind="self.stardust"></span></div>
 </div>
