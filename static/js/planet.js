@@ -108,22 +108,18 @@ export async function renderHere() {
   const key = `${x},${y}`;
   const obj = window.planetData.tiles[key] ?? null;
 
+  const hereEl = document.querySelector(`[data-pos="${HERE_POS}"]`);
+
   if (!obj) {
-    const html = await fetch('/partial/here/none').then((r) => r.text());
-    document.querySelector(`[data-pos="5"]`).innerHTML = html;
+    hereEl.innerHTML = await fetch('/partial/here/none').then((r) => r.text());
     return;
   }
 
-  window.hereData = await fetch('/data/here').then((r) => r.json());
-  console.log('hereData:', window.hereData);
+  // obj.id を使って「サーバにレンダさせる」
+  const res = await fetch(`/partial/here/${obj.kind}?object_id=${obj.id}`);
+  if (!res.ok) throw new Error(`unknown here kind: ${obj.kind}`);
 
-  const res = await fetch(`/partial/here/${obj.kind}`);
-  if (!res.ok) {
-    throw new Error(`unknown here kind: ${obj.kind}`);
-  }
-
-  const html = await res.text();
-  document.querySelector(`[data-pos="${HERE_POS}"]`).innerHTML = html;
+  hereEl.innerHTML = await res.text();
 }
 
 /* 
