@@ -115,6 +115,8 @@ export async function renderHere() {
   }
 
   window.hereData = await fetch('/data/here').then((r) => r.json());
+  console.log('hereData:', window.hereData);
+
   const res = await fetch(`/partial/here/${obj.kind}`);
   if (!res.ok) {
     throw new Error(`unknown here kind: ${obj.kind}`);

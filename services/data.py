@@ -42,16 +42,12 @@ def fetch_planet_data(cur, user_id):
     # --------------------------------------------------
     # ① ユーザーのいる惑星を取得
     # --------------------------------------------------
-    cur.execute("""
-        SELECT planet_id
-        FROM users
-        WHERE id = %s
-    """, (user_id,))
-    row = cur.fetchone()
-    if row is None:
+    self_data = fetch_self_data(cur, user_id)
+    if self_data is None:
         raise Exception("user not found")
 
-    planet_id = row["planet_id"]
+    planet_id = self_data["planet_id"]
+
 
     # --------------------------------------------------
     # ② 惑星情報
@@ -132,17 +128,71 @@ def fetch_planet_data(cur, user_id):
 
 
 # here
-def fetch_here_data(cur, object_id):
-    return{
-        "dummy": True
-    }
-
-
-def get_current_user(cur,user_id):
+def fetch_here_data(cur, user_id: int):
+    # 1) ユーザーの現在地
     cur.execute("""
-        SELECT id, planet_id, x, y,direction
+        SELECT planet_id, x, y
         FROM users
         WHERE id = %s
     """, (user_id,))
-    return cur.fetchone()
+    user = cur.fetchone()
+    if not user:
+        return {"root_id": None, "nodes": {}, "edges": {}}
+
+    # 2) タイル上の root object を取得
+    cur.execute("""
+        SELECT object_id
+        FROM object_tiles
+        WHERE planet_id = %s AND x = %s AND y = %s
+        LIMIT 1
+    """, (user["planet_id"], user["x"], user["y"]))
+    row = cur.fetchone()
+    if not row:
+        return {"root_id": None, "nodes": {}, "edges": {}}
+
+    root_id = row["object_id"]
+
+    # 3) relation を再帰で全部拾う（root から辿れる child を全取得）
+    cur.execute("""
+        WITH RECURSIVE rel AS (
+          SELECT parent_id, child_id
+          FROM object_relations
+          WHERE parent_id = %s
+
+          UNION ALL
+
+          SELECT r.parent_id, r.child_id
+          FROM object_relations r
+          JOIN rel ON r.parent_id = rel.child_id
+        )
+        SELECT parent_id, child_id
+        FROM rel
+    """, (root_id,))
+    rel_rows = cur.fetchall()
+
+    # 4) edges と ids を作る
+    edges: dict[int, list[int]] = {}
+    ids = {root_id}
+    for r in rel_rows:
+        p = r["parent_id"]
+        c = r["child_id"]
+        edges.setdefault(p, []).append(c)
+        ids.add(p)
+        ids.add(c)
+
+    # 5) objects をまとめて取る
+    cur.execute("""
+        SELECT id, kind, content, good, bad, created_at, created_user
+        FROM objects
+        WHERE id = ANY(%s)
+    """, (list(ids),))
+    obj_rows = cur.fetchall()
+
+    nodes = {str(o["id"]): dict(o) for o in obj_rows}
+
+    return {
+        "root_id": root_id,
+        "nodes": nodes,
+        "edges": edges
+    }
 

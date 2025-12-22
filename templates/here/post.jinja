@@ -1,8 +1,21 @@
 <div class="flex-column">
-  <div class="flex-section"><span data-bind="content"></span></div>
   <div class="flex-row">
-    <div>fav:<span data-bind="good"></span></div>
-    <div>no:<span data-bind="bad"></span></div>
-    <div><span data-bind="created-user"></span></div>
+    <div>
+      <span data-bind="here.created-user"></span>
+    </div>
+    <div>
+      <span data-bind="here.created-at"></span>
+    </div>
+  </div>
+  <div class="flex-section">
+    <span data-bind="here.content"></span>
+  </div>
+  <div class="flex-row">
+    <div>
+      fav:<span data-bind="here.good"></span>
+    </div>
+    <div>
+      bad:<span data-bind="here.bad"></span>
+    </div>
   </div>
 </div>

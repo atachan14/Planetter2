@@ -19,7 +19,6 @@ button {
 .flex-row {
   display: flex;
   flex-direction: row;
-  width: 100%;
 }
 .flex-section {
   flex: 1;

@@ -40,6 +40,7 @@ function updateUI() {
     let source = null;
     if (scope === 'self') source = window.selfData;
     if (scope === 'planet') source = window.planetData.planet;
+    if (scope === 'here') source = window.hereData;
 
     if (source && source[key] !== undefined) {
       el.textContent = source[key];
@@ -59,7 +60,7 @@ function initLandingEvents() {
     if (!btn) return;
 
     // 惑星画面へ
-    await showPlanet();
+    await init();
   });
 }
 
@@ -69,6 +70,4 @@ async function showPlanet() {
 
   const module = await import('/static/js/planet.js');
   await module.initPlanet();
-
-  updateUI();
 }
